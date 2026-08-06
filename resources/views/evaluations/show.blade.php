@@ -275,6 +275,48 @@
         </div>
     </div>
 
+    {{-- =====================================================
+         BLOK: KNOWLEDGE GRAPH INTERAKTIF
+         ===================================================== --}}
+    <div class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+            <h4 class="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                </div>
+                Knowledge Graph — Peta Relasi Keputusan DSS
+            </h4>
+            <div class="flex items-center gap-2">
+                <button onclick="graphFitAll()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-medium transition-all" title="Sesuaikan Tampilan">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    Fit All
+                </button>
+                <button onclick="toggleGraphFullscreen()" id="btn-fullscreen-match" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-[10px] font-medium transition-all" title="Layar Penuh">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    Layar Penuh
+                </button>
+            </div>
+        </div>
+
+        {{-- Legend --}}
+        <div class="px-5 py-3 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px]">
+            <span class="font-semibold text-slate-500 uppercase">Legenda:</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-500 inline-block"></span> Pasangan Ganda</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Pemain</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-indigo-500 inline-block"></span> Statistik Fakta</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-rose-500 inline-block" style="transform:rotate(45deg);width:10px;height:10px;"></span> Jenis Error</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-purple-500 inline-block"></span> Aturan DSS</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-amber-500 inline-block"></span> Rekomendasi Latihan</span>
+        </div>
+
+        {{-- Graph Container --}}
+        <div id="match-knowledge-graph-wrapper" class="relative">
+            <div id="knowledge-graph" style="height: 520px; width: 100%; background: #f8fafc;"></div>
+        </div>
+    </div>
+
     {{-- Bottom Actions --}}
     <div class="flex items-center justify-between flex-wrap gap-3 border-t border-slate-100 pt-4">
         <a href="{{ route('statistics.index') }}" class="btn btn-outline text-xs">
@@ -288,6 +330,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
 <script>
     function toggleAccordion(trigger) {
         const content = trigger.nextElementSibling;
@@ -303,5 +346,143 @@
             trigger.classList.add('open');
         }
     }
+
+    // ===== KNOWLEDGE GRAPH INITIALIZATION =====
+    let knowledgeGraphNetwork = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('knowledge-graph');
+        if (!container) return;
+
+        const graphData = @json($graphData);
+
+        const nodes = new vis.DataSet(graphData.nodes.map(n => ({
+            ...n,
+            font: {
+                size: n.group === 'drill' ? 10 : 12,
+                color: '#1e293b',
+                face: 'Inter, sans-serif',
+                multi: 'md',
+            },
+        })));
+
+        const edges = new vis.DataSet(graphData.edges.map(e => ({
+            ...e,
+            arrows: { to: { enabled: true, scaleFactor: 0.6 } },
+            font: { size: 9, color: '#64748b', face: 'Inter, sans-serif', strokeWidth: 3, strokeColor: '#ffffff' },
+            smooth: { type: 'cubicBezier', forceDirection: 'horizontal', roundness: 0.35 },
+            width: e.width || 1.5,
+        })));
+
+        const options = {
+            layout: {
+                hierarchical: {
+                    enabled: true,
+                    direction: 'LR',
+                    sortMethod: 'directed',
+                    nodeSpacing: 110,
+                    levelSeparation: 250,
+                    treeSpacing: 150,
+                    blockShifting: true,
+                    edgeMinimization: true,
+                    parentCentralization: true
+                }
+            },
+            groups: {
+                pair: {
+                    color: { background: '#10b981', border: '#059669', highlight: { background: '#34d399', border: '#059669' } },
+                    font: { color: '#ffffff', size: 12, bold: { color: '#ffffff' } },
+                    borderWidth: 2.5,
+                    shadow: { enabled: true, color: 'rgba(16, 185, 129, 0.3)', size: 10 },
+                },
+                player: {
+                    color: { background: '#3b82f6', border: '#2563eb', highlight: { background: '#60a5fa', border: '#2563eb' } },
+                    font: { color: '#ffffff', size: 11, bold: { color: '#ffffff' } },
+                    borderWidth: 2,
+                    shadow: { enabled: true, color: 'rgba(59, 130, 246, 0.25)', size: 8 },
+                },
+                stat: {
+                    color: { background: '#6366f1', border: '#4f46e5', highlight: { background: '#818cf8', border: '#4f46e5' } },
+                    font: { color: '#ffffff', size: 11 },
+                    borderWidth: 2,
+                    shadow: { enabled: true, color: 'rgba(99, 102, 241, 0.25)', size: 8 },
+                },
+                error: {
+                    color: { background: '#f43f5e', border: '#e11d48', highlight: { background: '#fb7185', border: '#e11d48' } },
+                    font: { color: '#ffffff', size: 11, bold: { color: '#ffffff' } },
+                    borderWidth: 2,
+                    shadow: { enabled: true, color: 'rgba(244, 63, 94, 0.25)', size: 8 },
+                },
+                rule: {
+                    color: { background: '#8b5cf6', border: '#7c3aed', highlight: { background: '#a78bfa', border: '#7c3aed' } },
+                    font: { color: '#ffffff', size: 10 },
+                    borderWidth: 2,
+                    shadow: { enabled: true, color: 'rgba(139, 92, 246, 0.25)', size: 6 },
+                },
+                drill: {
+                    color: { background: '#f59e0b', border: '#d97706', highlight: { background: '#fbbf24', border: '#d97706' } },
+                    font: { color: '#1e293b', size: 9 },
+                    borderWidth: 1.5,
+                    shadow: { enabled: true, color: 'rgba(245, 158, 11, 0.2)', size: 6 },
+                },
+            },
+            physics: {
+                enabled: false
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 100,
+                zoomView: true,
+                dragView: true,
+                navigationButtons: true,
+            },
+        };
+
+        knowledgeGraphNetwork = new vis.Network(container, { nodes, edges }, options);
+
+        knowledgeGraphNetwork.once('stabilizationIterationsDone', function() {
+            knowledgeGraphNetwork.fit({ animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
+        });
+    });
+
+    function graphFitAll() {
+        if (knowledgeGraphNetwork) {
+            knowledgeGraphNetwork.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+        }
+    }
+
+    function toggleGraphFullscreen() {
+        const wrapper = document.getElementById('match-knowledge-graph-wrapper');
+        const graphEl = document.getElementById('knowledge-graph');
+        const btn = document.getElementById('btn-fullscreen-match');
+
+        if (!wrapper.classList.contains('graph-fullscreen')) {
+            wrapper.classList.add('graph-fullscreen');
+            wrapper.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:#f8fafc;';
+            graphEl.style.height = '100vh';
+            btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> Tutup';
+        } else {
+            wrapper.classList.remove('graph-fullscreen');
+            wrapper.style.cssText = 'position:relative;';
+            graphEl.style.height = '520px';
+            btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg> Layar Penuh';
+        }
+        if (knowledgeGraphNetwork) {
+            setTimeout(() => {
+                knowledgeGraphNetwork.redraw();
+                knowledgeGraphNetwork.fit({ animation: { duration: 300 } });
+            }, 200);
+        }
+    }
+
+    // ESC key to exit fullscreen
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const wrapper = document.getElementById('match-knowledge-graph-wrapper');
+            if (wrapper && wrapper.classList.contains('graph-fullscreen')) {
+                toggleGraphFullscreen();
+            }
+        }
+    });
 </script>
 @endpush

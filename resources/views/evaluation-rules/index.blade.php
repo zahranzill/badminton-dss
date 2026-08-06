@@ -102,6 +102,57 @@
         </div>
     </div>
 
+    {{-- =====================================================
+         BLOK: GLOBAL KNOWLEDGE GRAPH — PETA PENGETAHUAN SISTEM
+         ===================================================== --}}
+    <div class="card overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between flex-wrap gap-3">
+            <h4 class="text-sm font-semibold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white flex-shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                    </svg>
+                </div>
+                Knowledge Graph — Peta Basis Pengetahuan DSS
+            </h4>
+            <div class="flex items-center gap-2">
+                <button onclick="globalGraphFitAll()" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] font-medium transition-all" title="Sesuaikan Tampilan">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    Fit All
+                </button>
+                <button onclick="toggleGraphFullscreen()" id="btn-fullscreen" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-[10px] font-medium transition-all" title="Layar Penuh">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+                    Layar Penuh
+                </button>
+            </div>
+        </div>
+
+        {{-- Info --}}
+        <div class="px-5 py-2.5 bg-gradient-to-r from-indigo-50 to-cyan-50 border-b border-slate-100">
+            <p class="text-[10px] text-indigo-700 leading-relaxed">
+                <strong>Peta ini menampilkan seluruh basis pengetahuan (Knowledge Base)</strong> yang dimiliki sistem DSS PB Garles. 
+                Alur: <strong class="text-blue-600">Data Fakta</strong> → <strong class="text-violet-600">Indikator Kinerja</strong> → <strong class="text-rose-600">Aturan IF</strong> → <strong class="text-amber-600">Evaluasi THEN</strong> → <strong class="text-emerald-600">Keputusan DSS</strong>.
+                Hover pada node untuk melihat detail. Drag dan scroll untuk navigasi.
+            </p>
+        </div>
+
+        {{-- Legend --}}
+        <div class="px-5 py-2.5 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center gap-x-5 gap-y-2 text-[10px]">
+            <span class="font-semibold text-slate-500 uppercase">Legenda:</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-slate-700 inline-block"></span> Inference Engine</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-blue-500 inline-block"></span> Data Input</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-violet-500 inline-block" style="transform:rotate(45deg);width:10px;height:10px;"></span> Indikator Kinerja</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-rose-500 inline-block"></span> Aturan (IF)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-amber-500 inline-block"></span> Evaluasi (THEN)</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-emerald-500 inline-block"></span> Keputusan Output</span>
+        </div>
+
+        {{-- Graph Container --}}
+        <div id="global-knowledge-graph-wrapper" class="relative">
+            <div id="global-knowledge-graph" style="height: 580px; width: 100%; background: #f8fafc;"></div>
+        </div>
+    </div>
+
     {{-- Rules Grid --}}
     @if($rules->count() > 0)
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -179,3 +230,145 @@
     @endif
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+<script>
+    let globalGraphNetwork = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('global-knowledge-graph');
+        if (!container) return;
+
+        const graphData = @json($globalGraphData);
+
+        const nodes = new vis.DataSet(graphData.nodes.map(n => ({
+            ...n,
+            font: {
+                size: n.group === 'evaluation' ? 9 : (n.group === 'system' ? 14 : 11),
+                color: '#1e293b',
+                face: 'Inter, sans-serif',
+                multi: 'md',
+            },
+        })));
+
+        const edges = new vis.DataSet(graphData.edges.map(e => ({
+            ...e,
+            arrows: { to: { enabled: true, scaleFactor: 0.5 } },
+            font: { size: 8, color: '#64748b', face: 'Inter, sans-serif', strokeWidth: 3, strokeColor: '#ffffff' },
+            smooth: { type: 'cubicBezier', forceDirection: 'horizontal', roundness: 0.35 },
+            width: e.width || 1.5,
+        })));
+
+        const options = {
+            layout: {
+                hierarchical: {
+                    enabled: true,
+                    direction: 'LR', // Left to Right flow
+                    sortMethod: 'directed',
+                    nodeSpacing: 120,
+                    levelSeparation: 260,
+                    treeSpacing: 160,
+                    blockShifting: true,
+                    edgeMinimization: true,
+                    parentCentralization: true
+                }
+            },
+            groups: {
+                input: {
+                    color: { background: '#3b82f6', border: '#1d4ed8', highlight: { background: '#60a5fa', border: '#1d4ed8' } },
+                    font: { color: '#ffffff', size: 11, bold: { color: '#ffffff' } },
+                    borderWidth: 2,
+                    shadow: { enabled: true, color: 'rgba(59, 130, 246, 0.3)', size: 8 },
+                },
+                indicator: {
+                    color: { background: '#8b5cf6', border: '#6d28d9', highlight: { background: '#a78bfa', border: '#6d28d9' } },
+                    font: { color: '#ffffff', size: 10, bold: { color: '#ffffff' } },
+                    borderWidth: 2,
+                    shadow: { enabled: true, color: 'rgba(139, 92, 246, 0.3)', size: 8 },
+                },
+                system: {
+                    color: { background: '#1e293b', border: '#0f172a', highlight: { background: '#334155', border: '#0f172a' } },
+                    font: { color: '#ffffff', size: 12, bold: { color: '#ffffff' } },
+                    borderWidth: 3,
+                    shadow: { enabled: true, color: 'rgba(30, 41, 59, 0.4)', size: 12 },
+                },
+                rule: {
+                    color: { background: '#f43f5e', border: '#be123c', highlight: { background: '#fb7185', border: '#be123c' } },
+                    font: { color: '#ffffff', size: 10 },
+                    borderWidth: 2,
+                    shadow: { enabled: true, color: 'rgba(244, 63, 94, 0.3)', size: 6 },
+                },
+                evaluation: {
+                    color: { background: '#f59e0b', border: '#b45309', highlight: { background: '#fbbf24', border: '#b45309' } },
+                    font: { color: '#1e293b', size: 9 },
+                    borderWidth: 1.5,
+                    shadow: { enabled: true, color: 'rgba(245, 158, 11, 0.25)', size: 6 },
+                },
+                output: {
+                    color: { background: '#10b981', border: '#047857', highlight: { background: '#34d399', border: '#047857' } },
+                    font: { color: '#ffffff', size: 11, bold: { color: '#ffffff' } },
+                    borderWidth: 2.5,
+                    shadow: { enabled: true, color: 'rgba(16, 185, 129, 0.3)', size: 10 },
+                },
+            },
+            physics: {
+                enabled: false // Disabled for stable, deterministic hierarchical rendering
+            },
+            interaction: {
+                hover: true,
+                tooltipDelay: 100,
+                zoomView: true,
+                dragView: true,
+                navigationButtons: true,
+            },
+        };
+
+        globalGraphNetwork = new vis.Network(container, { nodes, edges }, options);
+
+        globalGraphNetwork.once('stabilizationIterationsDone', function() {
+            globalGraphNetwork.fit({ animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
+        });
+    });
+
+    function globalGraphFitAll() {
+        if (globalGraphNetwork) {
+            globalGraphNetwork.fit({ animation: { duration: 500, easingFunction: 'easeInOutQuad' } });
+        }
+    }
+
+    function toggleGraphFullscreen() {
+        const wrapper = document.getElementById('global-knowledge-graph-wrapper');
+        const graphEl = document.getElementById('global-knowledge-graph');
+        const btn = document.getElementById('btn-fullscreen');
+
+        if (!wrapper.classList.contains('graph-fullscreen')) {
+            wrapper.classList.add('graph-fullscreen');
+            wrapper.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:9999;background:#f8fafc;';
+            graphEl.style.height = '100vh';
+            btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> Tutup';
+        } else {
+            wrapper.classList.remove('graph-fullscreen');
+            wrapper.style.cssText = 'position:relative;';
+            graphEl.style.height = '580px';
+            btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg> Layar Penuh';
+        }
+        if (globalGraphNetwork) {
+            setTimeout(() => {
+                globalGraphNetwork.redraw();
+                globalGraphNetwork.fit({ animation: { duration: 300 } });
+            }, 200);
+        }
+    }
+
+    // ESC key to exit fullscreen
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const wrapper = document.getElementById('global-knowledge-graph-wrapper');
+            if (wrapper && wrapper.classList.contains('graph-fullscreen')) {
+                toggleGraphFullscreen();
+            }
+        }
+    });
+</script>
+@endpush
