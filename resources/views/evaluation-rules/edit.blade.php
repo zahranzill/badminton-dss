@@ -115,7 +115,7 @@
                     <textarea id="evaluation_reason" name="evaluation_reason" rows="2"
                               class="form-input @error('evaluation_reason') error @enderror"
                               placeholder="Contoh: Dari total rally, [actual_value]% diakhiri dengan kesalahan sendiri." required>{{ old('evaluation_reason', $rule->evaluation_reason) }}</textarea>
-                    <p class="text-xs text-slate-400 mt-1">Gunakan <code class='bg-slate-100 px-1 rounded text-slate-600'>[actual_value]</code> untuk angka aktual, dan <code class='bg-slate-100 px-1 rounded text-slate-600'>[player_name]</code> untuk nama pemain.</p>
+                    <p class="text-xs text-slate-400 mt-1">💡 Tulis <code class='bg-slate-100 px-1 rounded text-slate-600'>[actual_value]</code> di posisi angka yang nanti akan terisi otomatis dari data pertandingan, dan <code class='bg-slate-100 px-1 rounded text-slate-600'>[player_name]</code> di posisi yang akan terisi nama pemain secara otomatis.</p>
                     @error('evaluation_reason')
                         <p class="form-error">{{ $message }}</p>
                     @enderror
@@ -124,10 +124,10 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {{-- Priority --}}
                     <div>
-                        <label for="priority" class="form-label">Urutan Pemeriksaan <span class="text-rose-500">*</span></label>
+                        <label for="priority" class="form-label">Prioritas Aturan <span class="text-rose-500">*</span></label>
                         <input type="number" id="priority" name="priority" value="{{ old('priority', $rule->priority) }}"
                                class="form-input @error('priority') error @enderror" min="0" required>
-                        <p class="text-xs text-slate-400 mt-1">Angka lebih kecil = diperiksa lebih dulu</p>
+                        <p class="text-xs text-slate-400 mt-1">💡 Semakin kecil angkanya, semakin penting aturan ini (diperiksa lebih dulu oleh sistem)</p>
                         @error('priority')
                             <p class="form-error">{{ $message }}</p>
                         @enderror
