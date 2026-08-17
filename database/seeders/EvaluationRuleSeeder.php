@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace Database\Seeders;
 
@@ -21,7 +21,7 @@ class EvaluationRuleSeeder extends Seeder
                 'condition_operator' => '>',
                 'condition_value' => '30',
                 'evaluation_result' => 'Pasangan terlalu sering melakukan kesalahan sendiri. Pukulan yang tidak akurat atau pengambilan keputusan yang tergesa-gesa menjadi penyebab utama hilangnya poin.',
-                'evaluation_reason' => 'Dari total rally yang dimainkan, [actual_value]% rally diakhiri dengan kesalahan sendiri pasangan — jauh melampaui batas wajar 30%.',
+                'evaluation_reason' => 'Dari total rally yang dimainkan, [angka]% rally diakhiri dengan kesalahan sendiri pasangan — jauh melampaui batas wajar 30%.',
                 'is_active' => true,
                 'priority' => 1,
             ],
@@ -149,7 +149,7 @@ class EvaluationRuleSeeder extends Seeder
                 'condition_operator' => '==',
                 'condition_value' => 'true',
                 'evaluation_result' => 'Lawan tampaknya sudah mengenali titik lemah pasangan dan secara sengaja mengarahkan hampir semua serangan ke satu pemain yang lebih rentan. Pemain tersebut perlu mendapat perhatian dan dukungan ekstra dari rekannya.',
-                'evaluation_reason' => 'Pemain [player_name] menyumbangkan sebagian besar kesalahan dalam pertandingan ini, sehingga terlihat menjadi sasaran utama serangan lawan.',
+                'evaluation_reason' => 'Pemain [nama_pemain] menyumbangkan sebagian besar kesalahan dalam pertandingan ini, sehingga terlihat menjadi sasaran utama serangan lawan.',
                 'is_active' => true,
                 'priority' => 9,
             ],
@@ -165,7 +165,7 @@ class EvaluationRuleSeeder extends Seeder
                 'condition_operator' => '>',
                 'condition_value' => '40',
                 'evaluation_result' => 'Pasangan cenderung kehilangan kendali dan membuat kesalahan justru di saat-saat paling krusial dan menegangkan. Ini mengindikasikan perlunya latihan mental dan pengendalian tekanan dalam situasi skor ketat.',
-                'evaluation_reason' => 'Sebanyak [actual_value]% dari total kesalahan terjadi pada situasi poin kritis, jauh di atas batas wajar 40%.',
+                'evaluation_reason' => 'Sebanyak [angka]% dari total kesalahan terjadi pada situasi poin kritis, jauh di atas batas wajar 40%.',
                 'is_active' => true,
                 'priority' => 10,
             ],
@@ -181,7 +181,7 @@ class EvaluationRuleSeeder extends Seeder
                 'condition_operator' => '<',
                 'condition_value' => '40',
                 'evaluation_result' => 'Pasangan kesulitan memenangkan rally yang berlangsung lama. Stamina yang menurun atau ketidaksabaran membangun serangan membuat pasangan akhirnya membuat kesalahan sendiri saat rally memanjang.',
-                'evaluation_reason' => 'Hanya [actual_value]% rally panjang yang berhasil dimenangkan oleh pasangan.',
+                'evaluation_reason' => 'Hanya [angka]% rally panjang yang berhasil dimenangkan oleh pasangan.',
                 'is_active' => true,
                 'priority' => 11,
             ],
@@ -197,7 +197,7 @@ class EvaluationRuleSeeder extends Seeder
                 'condition_operator' => '<',
                 'condition_value' => '45',
                 'evaluation_result' => 'Secara keseluruhan lawan lebih mendominasi jalur perolehan poin. Pola permainan pasangan kurang variatif dan mudah dibaca lawan, sehingga lawan lebih sering unggul dalam meraih poin.',
-                'evaluation_reason' => 'Pasangan hanya berhasil meraih [actual_value]% dari total poin yang dimainkan — lawan lebih unggul dalam perolehan poin.',
+                'evaluation_reason' => 'Pasangan hanya berhasil meraih [angka]% dari total poin yang dimainkan — lawan lebih unggul dalam perolehan poin.',
                 'is_active' => true,
                 'priority' => 12,
             ],
@@ -213,7 +213,7 @@ class EvaluationRuleSeeder extends Seeder
                 'condition_operator' => '<',
                 'condition_value' => '5',
                 'evaluation_result' => 'Sebagian besar rally berakhir sangat cepat, sering kali sebelum pasangan sempat membangun serangan. Ini menunjukkan pasangan sering langsung ditekan atau kalah di fase awal rally (servis dan return servis).',
-                'evaluation_reason' => 'Rata-rata rally hanya berlangsung [actual_value] kali pukulan — menunjukkan rally berlangsung sangat singkat.',
+                'evaluation_reason' => 'Rata-rata rally hanya berlangsung [angka] kali pukulan — menunjukkan rally berlangsung sangat singkat.',
                 'is_active' => true,
                 'priority' => 13,
             ],
@@ -229,7 +229,7 @@ class EvaluationRuleSeeder extends Seeder
                 'condition_operator' => '>',
                 'condition_value' => '12',
                 'evaluation_result' => 'Pertandingan berlangsung dengan intensitas tinggi dan rally yang melelahkan. Kedua pasangan cenderung adu ketahanan dan bertahan panjang. Kondisi ini sangat menguras stamina dan membutuhkan konsentrasi penuh sepanjang pertandingan.',
-                'evaluation_reason' => 'Rata-rata durasi setiap rally adalah [actual_value] detik — tergolong rally yang panjang dan melelahkan.',
+                'evaluation_reason' => 'Rata-rata durasi setiap rally adalah [angka] detik — tergolong rally yang panjang dan melelahkan.',
                 'is_active' => true,
                 'priority' => 14,
             ],
@@ -342,3 +342,4 @@ class EvaluationRuleSeeder extends Seeder
             ->update(['is_active' => false]);
     }
 }
+

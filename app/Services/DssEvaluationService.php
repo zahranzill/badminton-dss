@@ -57,10 +57,10 @@ class DssEvaluationService
             $isTriggered = $this->checkCondition($actualValue, $rule->condition_operator, $rule->condition_value);
 
             // Format string alasan & hasil evaluasi dengan nilai riil
-            $reason = str_replace('[actual_value]', $actualValue, $rule->evaluation_reason);
+            $reason = str_replace('[angka]', $actualValue, $rule->evaluation_reason);
             
             if ($rule->condition_param === 'error_concentration' && $isTriggered && $stats->mostErrorPlayer) {
-                $reason = str_replace('[player_name]', $stats->mostErrorPlayer->name, $reason);
+                $reason = str_replace('[nama_pemain]', $stats->mostErrorPlayer->name, $reason);
             }
 
             // Simpan detail hasil evaluasi aturan
